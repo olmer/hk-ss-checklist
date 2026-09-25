@@ -1,13 +1,17 @@
 (() => {
   const groups = window.SILKSONG_CHECKLIST_DATA;
   const STORAGE_KEY = 'silksong-checklist-state-v1';
+  const COLLAPSED_KEY = 'silksong-checklist-collapsed-v1';
   const includedKeys = new Set(groups.slice(0, 11).map(group => group.key));
   const trackedItems = groups.filter(group => includedKeys.has(group.key)).flatMap(group => group.items);
   const categories = document.getElementById('categories');
   const search = document.getElementById('search');
   const toast = document.getElementById('toast');
   const state = readState();
+  const collapsedGroups = readCollapsedGroups();
+  const totalWeight = trackedItems.reduce((sum, item) => sum + (item.weight ?? 1), 0);
   let toastTimer;
+  let imageScrollY = 0;
 
   function readState() {
     try {
@@ -22,6 +26,22 @@
     } catch { showToast('Could not save progress in this browser.'); }
   }
 
+  function readCollapsedGroups() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(COLLAPSED_KEY) || '[]');
+      return new Set(Array.isArray(saved) ? saved.filter(key => groups.some(group => group.key === key)) : []);
+    } catch { return new Set(); }
+  }
+
+  function saveCollapsedGroups() {
+    try { localStorage.setItem(COLLAPSED_KEY, JSON.stringify([...collapsedGroups])); }
+    catch { showToast('Could not save collapsed sections in this browser.'); }
+  }
+
+  function formatPercent(value) {
+    return `${Number(value.toFixed(2))}%`;
+  }
+
   function showToast(message) {
     toast.textContent = message;
     toast.classList.add('visible');
@@ -32,8 +52,9 @@
   function progress() {
     const done = trackedItems.filter(item => state[item.id]).length;
     const total = trackedItems.length;
-    const percent = total ? Math.round(done * 100 / total) : 0;
-    document.getElementById('progressText').textContent = `${percent}%`;
+    const weightDone = trackedItems.reduce((sum, item) => sum + (state[item.id] ? item.weight ?? 1 : 0), 0);
+    const percent = totalWeight ? weightDone * 100 / totalWeight : 0;
+    document.getElementById('progressText').textContent = formatPercent(percent);
     document.getElementById('progressCount').textContent = `${done} / ${total} items`;
     document.getElementById('remainingCount').textContent = `${total - done} remaining`;
     document.getElementById('progressBar').style.width = `${percent}%`;
@@ -41,7 +62,7 @@
     groups.forEach(group => {
       const count = group.items.filter(item => state[item.id]).length;
       const node = document.querySelector(`[data-count-for="${CSS.escape(group.key)}"]`);
-      if (node) node.textContent = `${count}/${group.items.length}${includedKeys.has(group.key) ? ` (${Math.round(count * 100 / (group.items.length || 1))}%)` : ''}`;
+      if (node) node.textContent = `${count}/${group.items.length}${includedKeys.has(group.key) ? ` (${formatPercent(count * 100 / (group.items.length || 1))})` : ''}`;
     });
   }
 
@@ -75,9 +96,10 @@
           <div class="item-copy"><h3 class="item-name">${escapeHtml(item.name)}</h3>${item.description ? `<p class="item-desc">${escapeHtml(item.description)}</p>` : ''}${item.map ? `<div class="map-row">${imageButton(item.map, `Location of ${item.name}`, 'map-preview')}<span>LOCATION MAP</span></div>` : ''}</div>
         </article>`).join('');
       const title = group.key === 'pulgas' ? 'Fleas' : group.key === 'bosses' ? 'Bosses' : group.category;
+      const expanded = !collapsedGroups.has(group.key);
       return `<section class="category" data-group="${escapeAttr(group.key)}">
-        <button type="button" class="category-header" aria-expanded="true"><span class="collapse-icon" aria-hidden="true">−</span><h2 class="category-title">${escapeHtml(title)}</h2>${completionHint}<span class="category-count" data-count-for="${escapeAttr(group.key)}"></span></button>
-        <div class="category-body">${cards}</div>
+        <button type="button" class="category-header" aria-expanded="${expanded}"><span class="collapse-icon" aria-hidden="true">${expanded ? '−' : '+'}</span><h2 class="category-title">${escapeHtml(title)}</h2>${completionHint}<span class="category-count" data-count-for="${escapeAttr(group.key)}"></span></button>
+        <div class="category-body"${expanded ? '' : ' hidden'}>${cards}</div>
       </section>`;
     }).join('');
     document.getElementById('resultCount').textContent = `${visibleCount} ${visibleCount === 1 ? 'entry' : 'entries'}`;
@@ -96,6 +118,7 @@
   categories.addEventListener('click', event => {
     const zoom = event.target.closest('[data-zoom]');
     if (zoom) {
+      imageScrollY = window.scrollY;
       document.getElementById('largeImage').src = zoom.dataset.zoom;
       document.getElementById('largeImage').alt = zoom.querySelector('img')?.alt || 'Checklist location image';
       document.getElementById('imageDialog').showModal();
@@ -109,17 +132,23 @@
       header.setAttribute('aria-expanded', String(expanded));
       body.hidden = !expanded;
       header.querySelector('.collapse-icon').textContent = expanded ? '−' : '+';
+      if (expanded) collapsedGroups.delete(section.dataset.group);
+      else collapsedGroups.add(section.dataset.group);
+      saveCollapsedGroups();
     }
   });
 
   search.addEventListener('input', render);
   document.getElementById('exportButton').addEventListener('click', () => {
     const backup = { source: 'Silksong local checklist', version: 1, exportedAt: new Date().toISOString(), checked: state };
+    const url = URL.createObjectURL(new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' }));
     const link = document.createElement('a');
-    link.href = URL.createObjectURL(new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' }));
+    link.href = url;
     link.download = 'silksong-checklist-progress.json';
+    document.body.appendChild(link);
     link.click();
-    URL.revokeObjectURL(link.href);
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
     showToast('Progress exported.');
   });
   const importFile = document.getElementById('importFile');
@@ -144,7 +173,9 @@
   const info = document.getElementById('infoDialog');
   document.getElementById('infoButton').addEventListener('click', () => info.showModal());
   document.querySelectorAll('.dialog-close').forEach(button => button.addEventListener('click', () => button.closest('dialog').close()));
-  [info, document.getElementById('imageDialog')].forEach(dialog => dialog.addEventListener('click', event => { if (event.target === dialog) dialog.close(); }));
+  const imageDialog = document.getElementById('imageDialog');
+  [info, imageDialog].forEach(dialog => dialog.addEventListener('click', event => { if (event.target === dialog) dialog.close(); }));
+  imageDialog.addEventListener('close', () => requestAnimationFrame(() => window.scrollTo({ top: imageScrollY, behavior: 'instant' })));
 
   render();
 })();
