@@ -11,7 +11,6 @@
   const collapsedGroups = readCollapsedGroups();
   const totalWeight = trackedItems.reduce((sum, item) => sum + (item.weight ?? 1), 0);
   let toastTimer;
-  let imageScrollY = 0;
 
   function readState() {
     try {
@@ -118,13 +117,10 @@
   categories.addEventListener('click', event => {
     const zoom = event.target.closest('[data-zoom]');
     if (zoom) {
-      imageScrollY = window.scrollY;
       document.getElementById('largeImage').src = zoom.dataset.zoom;
       document.getElementById('largeImage').alt = zoom.querySelector('img')?.alt || 'Checklist location image';
       const imageDialog = document.getElementById('imageDialog');
       imageDialog.showModal();
-      window.scrollTo({ top: imageScrollY, behavior: 'instant' });
-      requestAnimationFrame(() => window.scrollTo({ top: imageScrollY, behavior: 'instant' }));
       return;
     }
     const header = event.target.closest('.category-header');
@@ -178,7 +174,5 @@
   document.querySelectorAll('.dialog-close').forEach(button => button.addEventListener('click', () => button.closest('dialog').close()));
   const imageDialog = document.getElementById('imageDialog');
   [info, imageDialog].forEach(dialog => dialog.addEventListener('click', event => { if (event.target === dialog) dialog.close(); }));
-  imageDialog.addEventListener('close', () => requestAnimationFrame(() => window.scrollTo({ top: imageScrollY, behavior: 'instant' })));
-
   render();
 })();
