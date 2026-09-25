@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#111416" />
+    <meta name="description" content="An ad-free local Hollow Knight: Silksong completion checklist." />
+    <title>Silksong 100% Completion Checklist</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="disclaimer">Educational copy of the original website · Independent community checklist</div>
+    <header class="site-header">
+      <a class="brand" href="#top" aria-label="Silksong checklist home">
+        <span class="brand-mark" aria-hidden="true">S</span>
+        <span><strong>HOLLOW KNIGHT</strong><small>SILKSONG · COMPLETION CHECKLIST</small></span>
+      </a>
+      <div class="toolbar" aria-label="Checklist tools">
+        <label class="search-wrap"><span class="sr-only">Search items</span><span aria-hidden="true">⌕</span><input id="search" type="search" placeholder="Search items" autocomplete="off" /></label>
+        <button id="importButton" class="tool-button" type="button">Import</button>
+        <button id="exportButton" class="tool-button" type="button">Export</button>
+        <button id="infoButton" class="tool-button" type="button">Info</button>
+        <button id="resetButton" class="tool-button reset-button" type="button">Reset</button>
+        <input id="importFile" type="file" accept="application/json,.json" hidden />
+      </div>
+    </header>
+
+    <main id="top" class="page-shell">
+      <section class="hero" aria-labelledby="page-title">
+        <div class="hero-copy">
+          <p class="eyebrow">PHARLOOM AWAITS</p>
+          <h1 id="page-title">100% Completion Checklist</h1>
+          <p class="lede">Keep track of every ability, tool, upgrade, flea, and boss.</p>
+        </div>
+        <div class="progress-card" aria-label="Completion progress">
+          <div class="progress-top"><span>COMPLETION</span><strong id="progressText">0%</strong></div>
+          <div class="progress-track" role="progressbar" aria-label="Completion" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="progressBar"></span></div>
+          <div class="progress-bottom"><span id="progressCount">0 / 124 items</span><span id="remainingCount">124 remaining</span></div>
+        </div>
+      </section>
+
+      <div class="list-heading"><div><span class="eyebrow">YOUR JOURNEY</span><h2>Checklist</h2></div><p id="resultCount" aria-live="polite">197 entries</p></div>
+      <div id="categories" class="categories" aria-live="polite"></div>
+      <footer><span>Made for your journey through Pharloom.</span><span>Progress is saved in this browser.</span></footer>
+    </main>
+
+    <dialog id="infoDialog" class="dialog">
+      <button class="dialog-close" type="button" aria-label="Close">×</button>
+      <p class="eyebrow">ABOUT THIS CHECKLIST</p>
+      <h2>Track your journey</h2>
+      <p>This is an independent, ad-free local checklist based on the community Silksong checklist. Checkmarks are saved automatically in this browser. Use Export to back up your progress or move it to another browser.</p>
+      <p class="dialog-note">Item artwork and location images are loaded from the original public checklist site when online.</p>
+    </dialog>
+    <dialog id="imageDialog" class="image-dialog">
+      <button class="dialog-close" type="button" aria-label="Close">×</button>
+      <img id="largeImage" alt="" />
+    </dialog>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <script src="checklist-data.js"></script>
+    <script src="app.js" defer></script>
+  </body>
+</html>
