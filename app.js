@@ -121,7 +121,10 @@
       imageScrollY = window.scrollY;
       document.getElementById('largeImage').src = zoom.dataset.zoom;
       document.getElementById('largeImage').alt = zoom.querySelector('img')?.alt || 'Checklist location image';
-      document.getElementById('imageDialog').showModal();
+      const imageDialog = document.getElementById('imageDialog');
+      imageDialog.showModal();
+      window.scrollTo({ top: imageScrollY, behavior: 'instant' });
+      requestAnimationFrame(() => window.scrollTo({ top: imageScrollY, behavior: 'instant' }));
       return;
     }
     const header = event.target.closest('.category-header');
