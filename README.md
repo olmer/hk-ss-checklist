@@ -1,6 +1,6 @@
 # Silksong Checklist (local copy)
 
-An ad-free, local browser checklist based on the public community checklist at [checklistsilksong.com](https://checklistsilksong.com/).
+An local browser checklist based on the public community checklist at [checklistsilksong.com](https://checklistsilksong.com/).
 
 ## Run locally
 
