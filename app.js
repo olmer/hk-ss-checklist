@@ -66,7 +66,7 @@
   }
 
   function imageUrl(path) {
-    return !path ? '' : /^https?:\/\//i.test(path) ? path : `https://checklistsilksong.com/${path}`;
+    return !path ? '' : /^https?:\/\//i.test(path) ? path : new URL(path, document.baseURI).href;
   }
 
   function imageButton(path, alt, className) {
@@ -92,7 +92,7 @@
         <article class="item${state[item.id] ? ' is-checked' : ''}" data-item="${escapeAttr(item.id)}">
           <input class="item-check" type="checkbox" id="check-${escapeAttr(item.id)}" data-check="${escapeAttr(item.id)}" aria-label="Mark ${escapeAttr(item.name)} complete" ${state[item.id] ? 'checked' : ''} />
           ${imageButton(item.image, item.name, 'item-thumb')}
-          <div class="item-copy"><h3 class="item-name">${escapeHtml(item.name)}</h3>${item.description ? `<p class="item-desc">${escapeHtml(item.description)}</p>` : ''}${item.map ? `<div class="map-row">${imageButton(item.map, `Location of ${item.name}`, 'map-preview')}<span>LOCATION MAP</span></div>` : ''}</div>
+          <div class="item-copy"><h3 class="item-name">${escapeHtml(item.name)}</h3>${item.description ? `<p class="item-desc">${escapeHtml(item.description)}</p>` : ''}${item.map && !['bosses', 'silk_heart'].includes(group.key) ? `<div class="map-row">${imageButton(item.map, `Location of ${item.name}`, 'map-preview')}<span>LOCATION MAP</span></div>` : ''}</div>
         </article>`).join('');
       const title = group.key === 'pulgas' ? 'Fleas' : group.key === 'bosses' ? 'Bosses' : group.category;
       const expanded = !collapsedGroups.has(group.key);
