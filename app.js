@@ -66,10 +66,7 @@
   }
 
   function imageUrl(path) {
-    if (!path) return '';
-    if (/^https?:\/\//i.test(path)) return path;
-    if (path.startsWith('./')) return new URL(path, document.baseURI).href;
-    return `https://checklistsilksong.com/${path}`;
+    return !path ? '' : /^https?:\/\//i.test(path) ? path : new URL(path, document.baseURI).href;
   }
 
   function imageButton(path, alt, className) {
